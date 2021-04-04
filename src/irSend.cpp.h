@@ -372,8 +372,11 @@ void IRsend::mark(unsigned int aMarkMicros) {
 #else
 
 #  if defined(USE_NO_SEND_PWM)
-    digitalWrite(sendPin, LOW); // Set output to active low.
-
+    #if defined(USE_OPEN_DRAIN_OUTPUT)
+        pinMode(sendPin, OUTPUT);
+    #else
+        digitalWrite(sendPin, LOW); // Set output to active low.
+    #endif
 #  else
     TIMER_ENABLE_SEND_PWM
     ; // Enable pin 3 PWM output
@@ -386,7 +389,11 @@ void IRsend::mark(unsigned int aMarkMicros) {
 
 void IRsend::ledOff() {
 #if defined(USE_NO_SEND_PWM)
-    digitalWrite(sendPin, HIGH); // Set output to inactive high.
+    #if defined(USE_OPEN_DRAIN_OUTPUT)
+        pinMode(sendPin, INPUT);
+    #else
+        digitalWrite(sendPin, HIGH); // Set output to inactive high.
+    #endif
 #else
     TIMER_DISABLE_SEND_PWM; // Disable PWM output
 #endif // defined(USE_NO_SEND_PWM)
@@ -401,7 +408,11 @@ void IRsend::ledOff() {
 //
 void IRsend::space(unsigned int aSpaceMicros) {
 #if defined(USE_NO_SEND_PWM)
-    digitalWrite(sendPin, HIGH); // Set output to inactive high.
+    #if defined(USE_OPEN_DRAIN_OUTPUT)
+        pinMode(sendPin, INPUT);
+    #else
+        digitalWrite(sendPin, HIGH); // Set output to inactive high.
+    #endif
 #else
     TIMER_DISABLE_SEND_PWM; // Disable PWM output
 #endif // defined(USE_NO_SEND_PWM)
@@ -442,8 +453,13 @@ void IRsend::enableIROut(uint8_t aFrequencyKHz) {
 
 #if defined(USE_NO_SEND_PWM)
     (void) aFrequencyKHz;
-    pinMode(sendPin, OUTPUT);
-    digitalWrite(sendPin, HIGH); // Set output to inactive high.
+    #if defined(USE_OPEN_DRAIN_OUTPUT)
+        pinMode(sendPin, INPUT);
+        digitalWrite(sendPin, LOW);
+    #else
+        pinMode(sendPin, OUTPUT);
+        digitalWrite(sendPin, HIGH); // Set output to inactive high.
+    #endif
 #else
     TIMER_DISABLE_RECEIVE_INTR;
 
